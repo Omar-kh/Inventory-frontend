@@ -51,12 +51,8 @@ function App() {
       {typeof state.productList !== 'string' && state.productList.length > 0 && (
         <div className="section">
           <Select
-            onChange={event => {
-              getProductInfo(event.value, dispatch);
-            }}
-            options={state.productList.map(product => {
-              return { value: product.product_id, label: product.product_id };
-            })}
+            onChange={event => getProductInfo(event.value, dispatch)}
+            options={state.productList.map(product => ({ value: product.product_id, label: product.product_id }))}
           />
         </div>
       )}
