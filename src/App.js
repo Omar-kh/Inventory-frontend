@@ -1,5 +1,10 @@
 import React, { useEffect, useReducer } from 'react';
-import { getProducts, getProductInfo, sendInfo } from './services';
+import {
+  getProducts,
+  getProductInfo,
+  sendInfo,
+  makeChartData
+} from './services';
 import { LineChart } from 'react-chartkick';
 import 'chart.js';
 import Select from 'react-select';
@@ -26,18 +31,14 @@ function App() {
     getProducts(dispatch);
   }, []);
 
-  let data = {};
-
-  if (
+  const productInfoLoaded =
     typeof state.productInfo === 'object' &&
-    Object.keys(state.productInfo).length > 0
-  ) {
-    let productDates = state.productInfo.dates;
-    let productValues = state.productInfo.values;
-    for (let i = 0; i < productDates.length; i++) {
-      data[productDates[i]] = productValues[i];
-    }
-  }
+    Object.keys(state.productInfo).length > 0;
+
+  const productListLoaded =
+    typeof state.productList !== 'string' && state.productList.length > 0;
+
+  const chartData = makeChartData(productInfoLoaded, state.productInfo);
 
   return (
     <div className="container">
@@ -48,47 +49,49 @@ function App() {
         Select the product you want to monitor
       </h4>
       {state.productList === 'loading' && <h2>Loading...</h2>}
-      {typeof state.productList !== 'string' && state.productList.length > 0 && (
+      {productListLoaded && (
         <div className="section">
           <Select
             onChange={event => getProductInfo(event.value, dispatch)}
-            options={state.productList.map(product => ({ value: product.product_id, label: product.product_id }))}
+            options={state.productList.map(product => ({
+              value: product.product_id,
+              label: product.product_id
+            }))}
           />
         </div>
       )}
-      {typeof state.productInfo === 'object' &&
-        Object.keys(state.productInfo).length > 0 && (
-          <div className="row section">
-            <h5 className="center-align section teal-text">
-              {state.productInfo.product_name}
-            </h5>
-            <div className="center-align">
-              <button
-                className={
-                  state.displaySaveButton
-                    ? 'waves-effect waves-light btn'
-                    : 'hide'
-                }
-                onClick={() => {
-                  sendInfo(state.productInfo, dispatch);
-                  dispatch({ type: 'displaySaveButton', payload: false });
-                }}
-              >
-                Save
-              </button>
-            </div>
-            <div className="col l3 m3 s12 half-screen-length scrollable">
-              <TableContent
-                product={state.productInfo}
-                dispatch={dispatch}
-                displayOptions={state.editButtonDisplay}
-              />
-            </div>
-            <div className="col l9 m9 s12 section half-screen-length valign-wrapper">
-              <LineChart data={data} />
-            </div>
+      {productInfoLoaded && (
+        <div className="row section">
+          <h5 className="center-align section teal-text">
+            {state.productInfo.product_name}
+          </h5>
+          <div className="center-align">
+            <button
+              className={
+                state.displaySaveButton
+                  ? 'waves-effect waves-light btn'
+                  : 'hide'
+              }
+              onClick={() => {
+                sendInfo(state.productInfo, dispatch);
+                dispatch({ type: 'displaySaveButton', payload: false });
+              }}
+            >
+              Save
+            </button>
           </div>
-        )}
+          <div className="col l3 m3 s12 half-screen-length scrollable">
+            <TableContent
+              product={state.productInfo}
+              dispatch={dispatch}
+              displayOptions={state.editButtonDisplay}
+            />
+          </div>
+          <div className="col l9 m9 s12 section half-screen-length valign-wrapper">
+            <LineChart data={chartData} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

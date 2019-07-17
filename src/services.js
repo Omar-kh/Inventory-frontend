@@ -42,3 +42,17 @@ export async function sendInfo(productInfo, dispatch) {
     payload: productInfo
   });
 }
+
+export const makeChartData = (infoIsLoaded, info) => {
+  const data = {};
+
+  if (infoIsLoaded) {
+    const { dates } = info;
+    const { values } = info;
+    for (let i = 0; i < dates.length; i++) {
+      data[dates[i]] = values[i];
+    }
+  }
+
+  return data;
+};
